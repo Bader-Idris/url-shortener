@@ -48,7 +48,7 @@ const createAndSaveSite = async (urlStr) => {
 const postRes = async (req, res) => {
   const urlStr = req.body.url;
   if (!urlStr) {
-    return res.status(400).json({ error: "Invalid URL" });
+    return res.json({ error: "Invalid URL" });
   }
   try {
     const secCheck = new URL(urlStr);
@@ -66,14 +66,14 @@ const postRes = async (req, res) => {
       });
     }
   } catch (err) {
-    return res.status(400).json({ error: "Invalid URL" });
+    return res.json({ error: "Invalid URL" });
   }
 };
 
 const getByParams = async (req, res) => {
   const shortenURL = Number(req.params.shortenCode);
   if (Number.isNaN(shortenURL)) {
-    return res.status(400).json({ error: "Wrong format" });
+    return res.json({ error: "Wrong format" });
   }
   try {
     const foundNumber = await findByShortenNumber(shortenURL);
@@ -85,7 +85,7 @@ const getByParams = async (req, res) => {
       new URL(original_url);
       return res.redirect(original_url);
     } catch (err) {
-      return res.status(400).json({ error: "Invalid URL" });
+      return res.json({ error: "Invalid URL" });
     }
   } catch (err) {
     console.log(err);
