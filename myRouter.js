@@ -27,20 +27,18 @@ const findByShortenNumber = async (shortNum) => {
   return siteFound;
 };
 
-
 const createAndSaveSite = async (urlStr) => {
-  let isMatch = /(https?:\/\/)?(www\.)?[\w-]+(\.[\w-]+)+(:\d{4})?(\/[\w?.\W]*)?(\?[\w?.\W]*)?(&[\w?.\W]*)?/ig;
   const tempRand = Number(Math.floor(Math.random() * 9e7));
   try {
+    const secCheck = new URL(urlStr);
     const site = new Site({
-      original_url: urlStr.match(isMatch)[0],
+      original_url: secCheck.href,
       short_url: tempRand
     });
-
     const savedSite = await site.save();
     return savedSite;
   } catch (err) {
-    throw new Error('Failed to create and save site');
+    throw new Error('Invalid URL format');
   }
 };
 
@@ -49,21 +47,20 @@ const postRes = async (req, res) => {
   if (!urlStr) {
     return res.status(400).json({ error: "Invalid URL" });
   }
-  let isMatch = /(https?:\/\/)?(www\.)?[\w-]+(\.[\w-]+)+(:\d{4})?(\/[\w?.\W]*)?(\?[\w?.\W]*)?(&[\w?.\W]*)?/ig;
-  urlStr.match(isMatch);
-  if (!urlStr.match(isMatch)) return res.status(400).json({ error: "Invalid URL" });
   try {
-    const siteFound = await findByURL(urlStr.match(isMatch)[0]);
-    if (siteFound.length > 0) return res.json(siteFound[0]);
-    else {
-      const savedSite = await createAndSaveSite(urlStr);
+    const secCheck = new URL(urlStr);
+    const siteFound = await findByURL(secCheck.href);
+    if (siteFound.length > 0) {
+      return res.json(siteFound[0]);
+    } else {
+      const savedSite = await createAndSaveSite(secCheck.href);
       return res.json({
         original_url: savedSite.original_url,
         short_url: savedSite.short_url
       });
     }
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: "Invalid URL" });
   }
 };
 
@@ -78,9 +75,14 @@ const getByParams = async (req, res) => {
       return res.status(404).json({ error: "No short URL found for the given input" });
     }
     const { original_url } = foundNumber[0];
-    return res.redirect(original_url);
+    try {
+      new URL(original_url);
+      return res.redirect(original_url);
+    } catch (err) {
+      return res.status(400).json({ error: "Invalid URL" });
+    }
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return res.status(404).json({ error: "No short URL found for the given input" });
   }
 };
