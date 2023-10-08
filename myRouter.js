@@ -31,6 +31,9 @@ const createAndSaveSite = async (urlStr) => {
   const tempRand = Number(Math.floor(Math.random() * 9e7));
   try {
     const secCheck = new URL(urlStr);
+    if (secCheck.protocol !== 'http:' && secCheck.protocol !== 'https:') {
+      throw new Error('Invalid URL protocol');
+    }
     const site = new Site({
       original_url: secCheck.href,
       short_url: tempRand
@@ -49,6 +52,9 @@ const postRes = async (req, res) => {
   }
   try {
     const secCheck = new URL(urlStr);
+    if (secCheck.protocol !== 'http:' && secCheck.protocol !== 'https:') {
+      throw new Error('Invalid URL protocol');
+    }
     const siteFound = await findByURL(secCheck.href);
     if (siteFound.length > 0) {
       return res.json(siteFound[0]);
